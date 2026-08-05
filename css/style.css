@@ -313,7 +313,65 @@ display:none;
 }
 
 .logo{
+/* Programs Section */
 
+.programs {
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.programs h2 {
+  font-size: 36px;
+  margin-bottom: 10px;
+}
+
+.programs p {
+  color: #666;
+}
+
+.program-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 25px;
+  margin-top: 40px;
+}
+
+.program-card {
+  background: white;
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  transition: 0.3s;
+}
+
+.program-card:hover {
+  transform: translateY(-8px);
+}
+
+.program-card h3 {
+  font-size: 22px;
+  margin-bottom: 15px;
+}
+
+.program-card p {
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+
+/* Mobile View */
+
+@media(max-width:600px){
+
+.programs h2{
+  font-size:28px;
+}
+
+.program-grid{
+  grid-template-columns:1fr;
+}
+
+}
 font-size:20px;
 
 }
