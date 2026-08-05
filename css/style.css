@@ -346,6 +346,34 @@ display:none;
 
 .program-card:hover {
   transform: translateY(-8px);
+} /* How It Works */
+
+.how-it-works {
+  padding:60px 20px;
+  text-align:center;
+}
+
+.how-it-works h2 {
+  font-size:36px;
+}
+
+.steps {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:25px;
+  margin-top:40px;
+}
+
+.step-card {
+  background:white;
+  padding:25px;
+  border-radius:15px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.1);
+  transition:0.3s;
+}
+
+.step-card:hover {
+  transform:translateY(-5px);
 }
 
 .program-card h3 {
