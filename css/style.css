@@ -377,3 +377,33 @@ font-size:20px;
 }
 
 }
+/* Trainer Section */
+
+.trainer {
+  padding:60px 20px;
+  text-align:center;
+  background:#f7f7f7;
+}
+
+.trainer h2 {
+  font-size:36px;
+}
+
+.trainer-content h3 {
+  font-size:26px;
+  margin:20px 0;
+}
+
+.trainer-points {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:25px;
+  margin-top:40px;
+}
+
+.trainer-points div {
+  background:white;
+  padding:25px;
+  border-radius:15px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.1);
+}
