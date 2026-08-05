@@ -434,4 +434,56 @@ font-size:20px;
   padding:25px;
   border-radius:15px;
   box-shadow:0 5px 15px rgba(0,0,0,0.1);
+}/* Pricing Section */
+
+.pricing{
+padding:60px 20px;
+text-align:center;
+}
+
+.pricing-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+gap:25px;
+margin-top:40px;
+}
+
+
+.price-card{
+background:white;
+padding:30px;
+border-radius:15px;
+box-shadow:0 5px 15px rgba(0,0,0,0.1);
+}
+
+
+.price-card h2{
+font-size:35px;
+}
+
+
+.price-card ul{
+list-style:none;
+padding:0;
+}
+
+
+.price-card li{
+margin:12px 0;
+}
+
+
+.price-card button{
+background:#000;
+color:white;
+border:none;
+padding:12px 25px;
+border-radius:8px;
+cursor:pointer;
+}
+
+
+.price-card:hover{
+transform:translateY(-8px);
+transition:0.3s;
 }
