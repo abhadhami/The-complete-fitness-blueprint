@@ -1,9 +1,36 @@
 (() => {
   const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, (char) => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
 
+  const normalizeProgram = (name) => {
+    const raw = String(name || '').trim();
+    const aliases = {
+      'PCOS / PCOD Program':'PCOS / PCOD',
+      'PCOS / PCOD Fitness':'PCOS / PCOD',
+      'Sport Specific':'Sport-Specific Performance',
+      'Sport-Specific':'Sport-Specific Performance',
+      'Sport Specific Performance':'Sport-Specific Performance',
+      'Shoulder Health & Mobility Program':'Shoulder Health & Mobility',
+      'Knee Health & Rehabilitation Program':'Knee Health & Rehabilitation',
+      'Thyroid Fitness Program':'Thyroid Fitness',
+      'Female Fitness Program':'Female Fitness',
+      'Diabetes Fitness Program':'Diabetes Fitness',
+      'Functional Training Program':'Functional Training',
+      'Strength & Conditioning Program':'Strength & Conditioning',
+      'Special Populations Program':'Special Populations',
+      'Posture & Movement Correction Program':'Posture & Movement Correction',
+      'Muscle Building Program':'Muscle Building',
+      'Weight Loss Program':'Weight Loss'
+    };
+    if (aliases[raw]) return aliases[raw];
+    if (window.blueprintQuestionSets && window.blueprintQuestionSets[raw]) return raw;
+    const key = Object.keys(window.blueprintQuestionSets || {}).find(k => raw.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(raw.toLowerCase()));
+    return key || raw;
+  };
+
   const createAssessment = (name, price) => {
     if (document.getElementById('assessment-overlay')) return;
 
+    const programKey = normalizeProgram(name);
     const overlay = document.createElement('div');
     overlay.id = 'assessment-overlay';
     overlay.innerHTML = `
@@ -18,11 +45,11 @@
       </div>`;
     document.body.appendChild(overlay);
 
-    const state = { program: name, price, step: 1, basic: {}, safety: {}, specific: {} };
+    const state = { program: name, programKey, price, step: 1, basic: {}, safety: {}, specific: {} };
     const body = overlay.querySelector('#assessment-body');
     const fill = overlay.querySelector('#assessment-step-fill');
     const label = overlay.querySelector('#assessment-step-label');
-    const questionSet = (window.blueprintQuestionSets && window.blueprintQuestionSets[name]) || [];
+    const questionSet = (window.blueprintQuestionSets && window.blueprintQuestionSets[programKey]) || [];
 
     const render = () => {
       fill.style.width = `${(state.step / 4) * 100}%`;
@@ -81,20 +108,19 @@
 
       if (state.step === 3) {
         const flagged = Object.values(state.safety).includes('yes');
-        const questions = questionSet;
         body.innerHTML = `
           <h2>${escapeHtml(state.program)} — Your goals & questions</h2>
-          <p class="assessment-copy">This section is <strong>specific to this program</strong>. Your answers will be used to shape the next stage of your fitness profile.</p>
-          ${flagged ? '<div class="assessment-alert">One or more safety answers were flagged. You can complete this assessment, but exercise prescription should be reviewed with an appropriate healthcare professional first.</div>' : ''}
+          <p class="assessment-copy">This section is <strong>specific to ${escapeHtml(programKey)}</strong>. Your answers will be used to shape the next stage of your fitness profile.</p>
+          ${flagged ? '<div class="assessment-alert">One or more safety answers were flagged. You can complete this assessment, but exercise prescription should be reviewed with an appropriate healthcare professional.</div>' : ''}
           <div class="assessment-grid" id="specific-question-grid"></div>
           <p class="required-note">Please answer the questions that apply to you. Your program price is unchanged.</p>
           <div class="assessment-actions"><button class="button button-quiet" id="assessment-back">← Back</button><div class="right"><button class="button button-gold" id="assessment-next">Review my profile →</button></div></div>`;
 
         const grid = body.querySelector('#specific-question-grid');
-        if (!questions.length) {
+        if (!questionSet.length) {
           grid.innerHTML = '<p class="muted-note">Program-specific questions are being prepared.</p>';
         } else {
-          grid.innerHTML = questions.map(([key, title, options]) => `
+          grid.innerHTML = questionSet.map(([key, title, options]) => `
             <div class="assessment-field full">
               <span>${escapeHtml(title)}</span>
               <div class="option-grid">${options.map((option, index) => {
@@ -108,7 +134,7 @@
         body.querySelector('#assessment-back').onclick = () => { state.step = 2; render(); };
         body.querySelector('#assessment-next').onclick = () => {
           state.specific = {};
-          questions.forEach(([key]) => {
+          questionSet.forEach(([key]) => {
             const selected = body.querySelector(`input[name="q-${key}"]:checked`);
             if (selected) state.specific[key] = selected.value;
           });
