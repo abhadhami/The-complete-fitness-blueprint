@@ -1,5 +1,5 @@
 (() => {
-  const injectAssessment = () => {
+  const createAssessment = (name, price) => {
     if (document.getElementById('assessment-overlay')) return;
 
     const overlay = document.createElement('div');
@@ -16,7 +16,7 @@
       </div>`;
     document.body.appendChild(overlay);
 
-    const state = { program: '', price: '', step: 1, basic: {}, safety: {} };
+    const state = { program: name, price, step: 1, basic: {}, safety: {} };
     const body = overlay.querySelector('#assessment-body');
     const fill = overlay.querySelector('#assessment-step-fill');
     const label = overlay.querySelector('#assessment-step-label');
@@ -28,7 +28,7 @@
       if (state.step === 1) {
         body.innerHTML = `
           <h2 id="assessment-title">Let’s understand your starting point.</h2>
-          <p class="assessment-copy">A few essentials help us match the blueprint to your current level, routine and goal.</p>
+          <p class="assessment-copy">A few essentials help us match <strong>${state.program}</strong> to your current level, routine and goal.</p>
           <div class="assessment-grid">
             <label>Age<input id="a-age" type="number" min="13" max="100" value="${state.basic.age || ''}" required></label>
             <label>Sex<select id="a-sex"><option value="">Select</option><option>Female</option><option>Male</option><option>Prefer not to say</option></select></label>
@@ -40,6 +40,7 @@
             <label>Typical session time<select id="a-time"><option value="">Select</option><option>20–30 min</option><option>30–45 min</option><option>45–60 min</option><option>60+ min</option></select></label>
           </div>
           <div class="assessment-actions"><button class="button button-gold" id="assessment-next">Continue →</button></div>`;
+
         body.querySelector('#a-sex').value = state.basic.sex || '';
         body.querySelector('#a-level').value = state.basic.level || '';
         body.querySelector('#a-days').value = state.basic.days || '';
@@ -50,6 +51,7 @@
           const age = body.querySelector('#a-age').value;
           const level = body.querySelector('#a-level').value;
           if (!age || !level) return;
+
           state.basic = {
             age,
             sex: body.querySelector('#a-sex').value,
@@ -77,14 +79,22 @@
             <label>Have you experienced chest symptoms, fainting, unusual severe breathlessness or similar concerning symptoms during exercise?<select id="s-symptoms"><option value="no">No</option><option value="yes">Yes</option></select></label>
           </div>
           <div class="assessment-actions"><button class="button button-quiet" id="assessment-back">← Back</button><button class="button button-gold" id="assessment-next">Continue →</button></div>`;
-        ['pain','condition','surgery','restriction','symptoms'].forEach(k => { body.querySelector(`#s-${k}`).value = state.safety[k] || 'no'; });
 
-        body.querySelector('#assessment-back').onclick = () => { state.step = 1; render(); };
+        ['pain','condition','surgery','restriction','symptoms'].forEach((key) => {
+          body.querySelector(`#s-${key}`).value = state.safety[key] || 'no';
+        });
+
+        body.querySelector('#assessment-back').onclick = () => {
+          state.step = 1;
+          render();
+        };
+
         body.querySelector('#assessment-next').onclick = () => {
           state.safety = {};
-          ['pain','condition','surgery','restriction','symptoms'].forEach(k => { state.safety[k] = body.querySelector(`#s-${k}`).value; });
-          const flagged = Object.values(state.safety).includes('yes');
-          state.step = flagged ? 3 : 3;
+          ['pain','condition','surgery','restriction','symptoms'].forEach((key) => {
+            state.safety[key] = body.querySelector(`#s-${key}`).value;
+          });
+          state.step = 3;
           render();
         };
       }
@@ -100,10 +110,14 @@
             <div><span>Fitness level</span><strong>${state.basic.level}</strong></div>
             <div><span>Training environment</span><strong>${state.basic.env || 'Not specified'}</strong></div>
           </div>
-          ${flagged ? `<div class="assessment-warning">For safety, please seek appropriate professional guidance before beginning a new exercise program. This assessment does not diagnose or treat medical conditions.</div>` : ''}
+          ${flagged ? '<div class="assessment-warning">For safety, please seek appropriate professional guidance before beginning a new exercise program. This assessment does not diagnose or treat medical conditions.</div>' : ''}
           <div class="assessment-actions"><button class="button button-quiet" id="assessment-back">← Back</button><button class="button button-gold" id="assessment-finish">Continue to program questions →</button></div>`;
 
-        body.querySelector('#assessment-back').onclick = () => { state.step = 2; render(); };
+        body.querySelector('#assessment-back').onclick = () => {
+          state.step = 2;
+          render();
+        };
+
         body.querySelector('#assessment-finish').onclick = () => {
           overlay.remove();
           window.dispatchEvent(new CustomEvent('fitnessAssessmentComplete', { detail: state }));
@@ -115,31 +129,13 @@
     render();
   };
 
-  const openFor = (name, price) => {
-    injectAssessment();
-    const overlay = document.getElementById('assessment-overlay');
-    overlay.dataset.program = name;
-    overlay.dataset.price = price;
-    const originalRender = overlay.__unused;
-    const shell = overlay.querySelector('.assessment-shell');
-    shell.dataset.program = name;
-    shell.dataset.price = price;
-    const stateHook = () => {};
-    window.dispatchEvent(new CustomEvent('assessmentOpen', { detail: { name, price } }));
-    const header = overlay.querySelector('#assessment-body');
-    const observer = new MutationObserver(() => {
-      const badge = header.querySelector('#assessment-title');
-      if (badge) badge.dataset.program = name;
-    });
-    observer.observe(header, { childList: true, subtree: true });
-  };
-
   document.addEventListener('click', (event) => {
     const button = event.target.closest('#program-grid [data-program]');
     if (!button) return;
+
     event.stopImmediatePropagation();
     const oldDialog = document.querySelector('#checkout');
-    if (oldDialog && oldDialog.open) oldDialog.close();
-    openFor(button.dataset.program, button.dataset.price);
+    if (oldDialog?.open) oldDialog.close();
+    createAssessment(button.dataset.program, button.dataset.price);
   }, true);
 })();
