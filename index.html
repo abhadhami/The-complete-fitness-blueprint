@@ -74,15 +74,31 @@ const programFocus = {
   'Sport-Specific Performance':['Sport','Position/event','Competition level','Primary performance goal','Season/competition phase']
 };
 
+const primaryGoals = {
+  'Muscle Building':['Muscle hypertrophy / lean mass','Strength + muscle development','Targeted hypertrophy','Muscular development with sustainable progression'],
+  'Weight Loss':['Fat loss / body-composition improvement','Fat loss + strength retention','Fat loss + fitness conditioning','Fat loss with a sustainable training approach'],
+  'Thyroid Fitness':['Hypothyroidism — weight management / body composition','Hypothyroidism — strength & muscle development','Hyperthyroidism — medically-cleared conditioning','Hyperthyroidism — medically-cleared strength & function','General thyroid-aware fitness'],
+  'PCOS / PCOD':['PCOS / PCOD — weight management / body composition','PCOS / PCOD — strength & muscle development','PCOS / PCOD — cardiovascular fitness','PCOS / PCOD — general fitness & movement'],
+  'Female Fitness':['Fat loss / body composition','Strength & muscle development','Core & movement quality','Pregnancy/postpartum fitness support when appropriate','General strength & conditioning'],
+  'Diabetes Fitness':['Glucose-management-supportive fitness','Strength & muscle development','Weight management / body composition','Cardiovascular fitness & endurance','General fitness & conditioning'],
+  'Posture & Movement Correction':['Posture improvement','Mobility & movement quality','Movement-control / motor-control improvement','Functional movement for daily life','Desk-related movement improvement'],
+  'Shoulder Health & Mobility':['Shoulder mobility','Shoulder stability & control','Comfortable functional movement','Strength foundation','Return-to-activity progression when appropriate'],
+  'Knee Health & Rehabilitation':['Comfortable daily movement','Knee strength & capacity','Mobility / movement quality','Functional activity progression','Return-to-running / sport progression when appropriate'],
+  'Special Populations':['Functional independence','Strength & muscle function','Balance & mobility','Return-to-activity / functional capacity','General conditioning'],
+  'Functional Training':['Functional strength for daily life','Mobility & movement quality','Balance & coordination','Core stability & control','Work / recreation capacity'],
+  'Strength & Conditioning':['Maximum strength','Power / explosiveness','Muscular endurance','Conditioning / work capacity','Strength + conditioning'],
+  'Sport-Specific Performance':['Speed / acceleration','Agility & change of direction','Jump / explosive power','Sport-specific strength','Conditioning / endurance','Overall sport performance']
+};
+
 const questionSets = {
   'Muscle Building':[
-    ['mainGoal','Primary goal',['Muscle gain','Strength + muscle','Targeted hypertrophy']],
+    ['mainGoal','Primary training goal',['Muscle gain','Strength + muscle','Targeted hypertrophy']],
     ['targetArea','Primary target area',['Upper body','Lower body','Full body']],
     ['routine','Current training frequency',['Not training','1–2 days/week','3–4 days/week','5+ days/week']],
     ['equipment','Equipment access',['Full gym','Home + dumbbells','Home + bands','Bodyweight only']]
   ],
   'Weight Loss':[
-    ['mainGoal','Primary goal',['Fat loss','Fat loss + strength','General fitness']],
+    ['mainGoal','Primary fat-loss goal',['Fat loss','Fat loss + strength','General fitness']],
     ['activity','Current activity level',['Mostly sedentary','Lightly active','Moderately active','Very active']],
     ['barrier','Biggest barrier',['Consistency','Time','Nutrition habits','Exercise confidence']],
     ['previous','Previous structured attempts',['None','Yes, short-term','Yes, multiple times']]
@@ -125,7 +141,7 @@ const questionSets = {
   ],
   'Knee Health & Rehabilitation':[
     ['side','Affected knee',['Right','Left','Both','No current pain']],
-    ['symptom','Main symptom',['Pain','Pain + swelling','Stiffness','Instability'],],
+    ['symptom','Main symptom',['Pain','Pain + swelling','Stiffness','Instability']],
     ['function','Main functional limitation',['Stairs','Squatting','Walking','Running','Sit-to-stand']],
     ['history','Previous injury/surgery/physio',['None','Previous injury','Surgery','Physiotherapy','Diagnosed condition']]
   ],
@@ -162,6 +178,7 @@ function openAssessment(program,price){
   const root=document.getElementById('assessment-root');
   const state={program,price,step:1,basic:{},safety:{},specific:{}};
   const qs=questionSets[program]||[];
+  const goals=primaryGoals[program]||['General fitness'];
   const totalSteps=4;
   root.innerHTML=`<div class="assessment-overlay"><div class="assessment-shell"><button class="assessment-close" type="button" aria-label="Close">×</button><div class="assessment-header"><span class="eyebrow">Smart fitness assessment</span><div class="assessment-progress"><span id="a-progress"></span></div><div class="assessment-step" id="a-step">Step 1 of ${totalSteps}</div></div><div id="a-body"></div></div></div>`;
   const overlay=root.querySelector('.assessment-overlay');
@@ -173,7 +190,7 @@ function openAssessment(program,price){
     progress.style.width=`${state.step/totalSteps*100}%`;
     stepLabel.textContent=`Step ${state.step} of ${totalSteps}`;
     if(state.step===1){
-      body.innerHTML=`<h2 class="assessment-title">Let’s understand your starting point.</h2><p class="assessment-copy">Only the essentials. These answers help us understand your current level and training context.</p><div class="assessment-grid">
+      body.innerHTML=`<h2 class="assessment-title">Let’s understand your starting point.</h2><p class="assessment-copy">${esc(program)} has its own goal options. Choose the primary outcome you want this blueprint to support.</p><div class="assessment-grid">
       <label class="assessment-field">Age<input id="age" type="number" min="13" max="100" value="${esc(state.basic.age)}" required></label>
       <label class="assessment-field">Sex<select id="sex"><option value="">Select</option><option>Female</option><option>Male</option><option>Prefer not to say</option></select></label>
       <label class="assessment-field">Height (cm)<input id="height" type="number" min="100" max="250" value="${esc(state.basic.height)}"></label>
@@ -182,10 +199,10 @@ function openAssessment(program,price){
       <label class="assessment-field">Days available / week<select id="days"><option value="">Select</option><option>1–2</option><option>3</option><option>4</option><option>5+</option></select></label>
       <label class="assessment-field">Training environment<select id="env"><option value="">Select</option><option>Home</option><option>Gym</option><option>Outdoor / Field</option><option>Mixed</option></select></label>
       <label class="assessment-field">Typical session time<select id="time"><option value="">Select</option><option>20–30 min</option><option>30–45 min</option><option>45–60 min</option><option>60+ min</option></select></label>
-      <div class="assessment-field full"><span>Primary goal</span><div class="option-grid"><div class="option"><input id="g1" name="goal" type="radio" value="Fat loss"><label for="g1">Fat loss</label></div><div class="option"><input id="g2" name="goal" type="radio" value="Muscle / strength"><label for="g2">Muscle / strength</label></div><div class="option"><input id="g3" name="goal" type="radio" value="Mobility / movement"><label for="g3">Mobility / movement</label></div><div class="option"><input id="g4" name="goal" type="radio" value="Performance / sport"><label for="g4">Performance / sport</label></div></div></div></div><p class="required-note">Age and current fitness level are required. Other fields improve personalization but can be skipped when not applicable.</p><div class="assessment-actions"><div></div><div class="right"><button class="button button-gold" id="next">Continue →</button></div></div>`;
+      <div class="assessment-field full"><span>Primary goal for ${esc(program)}</span><div class="option-grid">${goals.map((goal,i)=>`<div class="option"><input id="g${i+1}" name="goal" type="radio" value="${esc(goal)}"><label for="g${i+1}">${esc(goal)}</label></div>`).join('')}</div></div></div><p class="required-note">Age, current fitness level and primary goal are required. Other fields improve personalization but can be skipped when not applicable.</p><div class="assessment-actions"><div></div><div class="right"><button class="button button-gold" id="next">Continue →</button></div></div>`;
       ['sex','level','days','env','time'].forEach(k=>{body.querySelector('#'+k).value=state.basic[k]||''});
       if(state.basic.goal){const r=body.querySelector(`input[name="goal"][value="${CSS.escape(state.basic.goal)}"]`);if(r)r.checked=true;}
-      body.querySelector('#next').onclick=()=>{const age=body.querySelector('#age').value;const level=body.querySelector('#level').value;if(!age||!level)return;state.basic={age,sex:body.querySelector('#sex').value,height:body.querySelector('#height').value,weight:body.querySelector('#weight').value,level,days:body.querySelector('#days').value,env:body.querySelector('#env').value,time:body.querySelector('#time').value,goal:(body.querySelector('input[name="goal"]:checked')||{}).value||''};state.step=2;render();};
+      body.querySelector('#next').onclick=()=>{const age=body.querySelector('#age').value;const level=body.querySelector('#level').value;const goal=(body.querySelector('input[name="goal"]:checked')||{}).value||'';if(!age||!level||!goal)return;state.basic={age,sex:body.querySelector('#sex').value,height:body.querySelector('#height').value,weight:body.querySelector('#weight').value,level,days:body.querySelector('#days').value,env:body.querySelector('#env').value,time:body.querySelector('#time').value,goal};state.step=2;render();};
     }
     if(state.step===2){
       body.innerHTML=`<h2 class="assessment-title">Quick safety screen.</h2><p class="assessment-copy">This is not a diagnosis. It helps identify situations where normal fitness guidance may need professional input.</p><div class="assessment-grid">
@@ -204,7 +221,7 @@ function openAssessment(program,price){
     if(state.step===4){
       const flagged=Object.values(state.safety).includes('yes');
       const answers=Object.entries(state.specific).filter(([,v])=>v).map(([k,v])=>`<div class="profile-card"><span>${esc(k.replace(/([A-Z])/g,' $1'))}</span><strong>${esc(v)}</strong></div>`).join('');
-      body.innerHTML=`<h2 class="assessment-title">Your fitness profile is ready.</h2><p class="assessment-copy">We will use this assessment as the structured input for the selected blueprint.</p><div class="assessment-profile"><div class="profile-card"><span>Selected program</span><strong>${esc(program)}</strong></div><div class="profile-card"><span>Program price</span><strong>${esc(price)}</strong></div><div class="profile-card"><span>Fitness level</span><strong>${esc(state.basic.level)}</strong></div><div class="profile-card"><span>Training environment</span><strong>${esc(state.basic.env||'Not specified')}</strong></div></div>${answers?`<div class="assessment-profile" style="margin-top:12px">${answers}</div>`:''}${flagged?`<div class="assessment-alert"><strong>Safety note:</strong> One or more answers indicate that professional guidance may be appropriate before starting a new exercise program. This assessment does not diagnose or treat medical conditions.</div>`:''}<p class="muted-note" style="margin-top:18px">Next phase: program-specific plan generation and secure checkout. No phone number is required.</p><div class="assessment-actions"><button class="button button-quiet" id="back">← Back</button><div class="right"><button class="button button-gold" id="continue">Continue to program →</button></div></div>`;
+      body.innerHTML=`<h2 class="assessment-title">Your fitness profile is ready.</h2><p class="assessment-copy">We will use this assessment as the structured input for the selected blueprint.</p><div class="assessment-profile"><div class="profile-card"><span>Selected program</span><strong>${esc(program)}</strong></div><div class="profile-card"><span>Program price</span><strong>${esc(price)}</strong></div><div class="profile-card"><span>Primary goal</span><strong>${esc(state.basic.goal)}</strong></div><div class="profile-card"><span>Fitness level</span><strong>${esc(state.basic.level)}</strong></div><div class="profile-card"><span>Training environment</span><strong>${esc(state.basic.env||'Not specified')}</strong></div></div>${answers?`<div class="assessment-profile" style="margin-top:12px">${answers}</div>`:''}${flagged?`<div class="assessment-alert"><strong>Safety note:</strong> One or more answers indicate that professional guidance may be appropriate before starting a new exercise program. This assessment does not diagnose or treat medical conditions.</div>`:''}<p class="muted-note" style="margin-top:18px">Next phase: program-specific plan generation and secure checkout. No phone number is required.</p><div class="assessment-actions"><button class="button button-quiet" id="back">← Back</button><div class="right"><button class="button button-gold" id="continue">Continue to program →</button></div></div>`;
       body.querySelector('#back').onclick=()=>{state.step=3;render()};
       body.querySelector('#continue').onclick=()=>{overlay.remove();window.dispatchEvent(new CustomEvent('fitnessAssessmentComplete',{detail:state}))};
     }
