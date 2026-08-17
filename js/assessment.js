@@ -1,9 +1,9 @@
 (() => {
-  const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, (char) => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+  const escapeHtml = (value) => String(value ?? '').replace(/[&<>'\"]/g, (char) => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
 
   /* Dedicated primary-goal map. Every program gets its own goal list. */
   const PROGRAM_GOALS = {
-    'Muscle Building': ['Muscle gain / hypertrophy','Strength + muscle','Targeted muscle development','Lean mass / body recomposition'],
+    'Muscle Building': ['Build overall lean muscle','Gain muscle + healthy body weight','Build muscle with minimal fat gain','Increase muscle + strength','Improve specific muscle groups'],
     'Weight Loss': ['Fat loss','Fat loss + strength','Fat loss + fitness','Body recomposition'],
     'Thyroid Fitness': ['Weight management','Strength / muscle','Energy & conditioning','Mobility & general fitness'],
     'PCOS / PCOD': ['Body composition / fat loss','Strength / muscle','Cardiometabolic fitness','Cycle- and lifestyle-supportive fitness'],
