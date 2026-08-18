@@ -3,7 +3,7 @@
 
   /* Dedicated primary-goal map. Every program gets its own goal list. */
   const PROGRAM_GOALS = {
-    'Muscle Building': ['Build overall lean muscle','Gain muscle + healthy body weight','Build muscle with minimal fat gain','Increase muscle + strength','Improve specific muscle groups'],
+    'Muscle Building': ['I’m Very Lean / Under-Muscled — Build Muscle from the Start','Lean Muscle Mass / Hypertrophy','Aesthetic / Physique Development','Bulking / Mass Gain','Cutting — Preserve Muscle','Body Recomposition','Muscle + Strength','Specific Muscle Group Development','Not Sure What I Need'],
     'Weight Loss': ['Fat loss','Fat loss + strength','Fat loss + fitness','Body recomposition'],
     'Thyroid Fitness': ['Weight management','Strength / muscle','Energy & conditioning','Mobility & general fitness'],
     'PCOS / PCOD': ['Body composition / fat loss','Strength / muscle','Cardiometabolic fitness','Cycle- and lifestyle-supportive fitness'],
