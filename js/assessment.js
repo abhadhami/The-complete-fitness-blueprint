@@ -3,7 +3,7 @@
 
   /* Dedicated primary-goal map. Every program gets its own goal list. */
   const PROGRAM_GOALS = {
-    'Muscle Building': ['I’m Very Lean / Under-Muscled — Build Muscle from the Start','Lean Muscle Mass / Hypertrophy','Aesthetic / Physique Development','Bulking / Mass Gain','Cutting — Preserve Muscle','Body Recomposition','Muscle + Strength','Specific Muscle Group Development','Not Sure What I Need'],
+    'Muscle Building': ['Lean Muscle Mass — Hypertrophy','Very Lean / Under-Muscled — Build Muscle from the Start','Aesthetic / Physique Development','Bulking / Mass Gain','Cutting — Preserve Muscle','Body Recomposition','Muscle + Strength','Specific Muscle Group Development','Not Sure What I Need'],
     'Weight Loss': ['Fat loss','Fat loss + strength','Fat loss + fitness','Body recomposition'],
     'Thyroid Fitness': ['Weight management','Strength / muscle','Energy & conditioning','Mobility & general fitness'],
     'PCOS / PCOD': ['Body composition / fat loss','Strength / muscle','Cardiometabolic fitness','Cycle- and lifestyle-supportive fitness'],
@@ -45,7 +45,6 @@
     const fill = overlay.querySelector('#assessment-step-fill');
     const label = overlay.querySelector('#assessment-step-label');
 
-    /* Always build the selected program's goal list locally. This prevents a generic fallback. */
     const goals = PROGRAM_GOALS[programKey] || [];
     const sourceSet = (window.blueprintQuestionSets && window.blueprintQuestionSets[programKey]) || [];
     const nonGoalQuestions = sourceSet.filter(q => q[0] !== 'mainGoal' && q[0] !== 'performanceGoal');
@@ -71,7 +70,8 @@
 
       if(state.step===3){
         const flagged=Object.values(state.safety).includes('yes');
-        body.innerHTML=`<h2>${escapeHtml(state.program)} — ${escapeHtml(goalKey==='performanceGoal'?'Performance goals':'Primary goals')}</h2><p class="assessment-copy">These choices are <strong>only for ${escapeHtml(programKey)}</strong>. They are not shared with the other programs.</p>${flagged?'<div class="assessment-alert">One or more safety answers were flagged. Exercise prescription should be reviewed with an appropriate healthcare professional.</div>':''}<div class="assessment-grid" id="specific-question-grid"></div><p class="required-note">Choose the options that best match your current objective.</p><div class="assessment-actions"><button class="button button-quiet" id="assessment-back">← Back</button><div class="right"><button class="button button-gold" id="assessment-next">Review my profile →</button></div></div>`;
+        const muscleHeader = programKey === 'Muscle Building' ? `<div class="program-focus"><strong>Muscle Building — Hypertrophy Program</strong><span>Science-Based Muscle Growth System</span></div>` : '';
+        body.innerHTML=`${muscleHeader}<h2>${escapeHtml(state.program)} — ${escapeHtml(goalKey==='performanceGoal'?'Performance goals':'Primary goals')}</h2><p class="assessment-copy">These choices are <strong>only for ${escapeHtml(programKey)}</strong>. They are not shared with the other programs.</p>${flagged?'<div class="assessment-alert">One or more safety answers were flagged. Exercise prescription should be reviewed with an appropriate healthcare professional.</div>':''}<div class="assessment-grid" id="specific-question-grid"></div><p class="required-note">Choose the options that best match your current objective.</p><div class="assessment-actions"><button class="button button-quiet" id="assessment-back">← Back</button><div class="right"><button class="button button-gold" id="assessment-next">Review my profile →</button></div></div>`;
         const grid=body.querySelector('#specific-question-grid');
         grid.innerHTML=questionSet.map(([key,title,options])=>`<div class="assessment-field full"><span>${escapeHtml(title)}</span><div class="option-grid">${options.map((option,index)=>{const id=`q-${key}-${index}`;const checked=state.specific[key]===option?'checked':'';return `<div class="option"><input id="${id}" type="radio" name="q-${escapeHtml(key)}" value="${escapeHtml(option)}" ${checked}><label for="${id}">${escapeHtml(option)}</label></div>`;}).join('')}</div></div>`).join('');
         body.querySelector('#assessment-back').onclick=()=>{state.step=2;render();};
