@@ -1,0 +1,63 @@
+name: Refine Thyroid Fitness Assessment
+
+on:
+  push:
+    paths:
+      - '.github/workflows/update-thyroid.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refine-thyroid:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update only Thyroid Fitness assessment
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('index.html')
+          text = path.read_text(encoding='utf-8')
+
+          new_goals = """'Thyroid Fitness':['Fat Loss / Weight Management','Healthy Weight Gain','Weight Maintenance','Muscle Gain & Strength','Muscle Preservation','Body Recomposition','Cardiovascular Fitness','Energy & Exercise Capacity','Mobility & Functional Fitness','Return to Consistent Training','Not Sure — Need Assessment']"""
+
+          new_questions = """'Thyroid Fitness':[['status','Thyroid profile',['Hypothyroidism','Hyperthyroidism','Other / thyroid condition','Not sure / prefer not to say']],['weightTrend','Current weight trend',['Weight gain','Weight loss','Weight stable','Difficulty gaining weight','Difficulty losing weight','Not sure']],['followup','Medical follow-up / treatment',['Regular medical follow-up','Currently under treatment','Recently changed treatment','Not sure','Prefer not to say']],['energy','Energy / fatigue level',['Good','Variable','Frequently low','Currently limited']],['capacity','Current exercise tolerance',['Good','Moderate','Low','Currently restricted']],['goal','Primary fitness goal',['Fat loss / weight management','Healthy weight gain','Weight maintenance','Muscle gain & strength','Muscle preservation','Body recomposition','Cardiovascular fitness','General fitness & conditioning','Mobility & functional fitness','Return to consistent training']]]"""
+
+          pattern_goals = r"'Thyroid Fitness':\[[^\n]*\],\n'PCOS / PCOD'"
+          replacement_goals = new_goals + ",\n'PCOS / PCOD'"
+          text, n1 = re.subn(pattern_goals, replacement_goals, text, count=1)
+
+          pattern_questions = r"'Thyroid Fitness':\[\[.*?\]\],\n'PCOS / PCOD'"
+          replacement_questions = new_questions + ",\n'PCOS / PCOD'"
+          text, n2 = re.subn(pattern_questions, replacement_questions, text, count=1)
+
+          if n1 != 1 or n2 != 1:
+              raise SystemExit(f'Expected exactly one Thyroid block replacement; goals={n1}, questions={n2}')
+
+          if text.count("['Thyroid Fitness'") < 1:
+              raise SystemExit('Thyroid Fitness block missing after update')
+          if text.count("['Muscle Building'") < 1:
+              raise SystemExit('Muscle Building program missing')
+          if text.count("['Cardiovascular Fitness & Conditioning'") < 1:
+              raise SystemExit('Final program missing')
+
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Commit Thyroid update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Refine Thyroid Fitness assessment"
+          git push
