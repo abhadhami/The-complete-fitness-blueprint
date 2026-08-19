@@ -129,7 +129,6 @@ jobs:
           }
 
           def js_array(value):
-              # JSON is valid JavaScript for these string arrays.
               import json
               return json.dumps(value, ensure_ascii=False, separators=(',',':'))
 
@@ -141,21 +140,17 @@ jobs:
                   raise RuntimeError(f'Could not safely replace {key}')
               return new_source
 
-          # Update only the old programs. Muscle Building and the nine new programs remain untouched.
           for key, values in primary_goals.items():
               text = replace_entry(text, key, js_array(values))
-
           for key, values in question_sets.items():
               text = replace_entry(text, key, js_array(values))
 
-          # Sanity checks before committing.
           required = ['Muscle Building','Weight Loss','Thyroid Fitness','PCOS / PCOD','Female Fitness','Diabetes Fitness','Posture & Movement Correction','Shoulder Health & Mobility','Knee Health & Rehabilitation','Special Populations','Functional Training','Strength & Conditioning','Sport-Specific Performance','Core','Balance & Stability','Running & Endurance Performance','Calisthenics & Bodyweight Strength','No-Gym Muscle & Strength Development','Home Fitness & Resistance Band Training','Mental Wellness & Stress Resilience','Wearable Data & VO₂ / Cardiovascular Fitness','Cardiovascular Fitness & Conditioning']
           for name in required:
               if name not in text:
                   raise RuntimeError(f'Missing program after update: {name}')
           if text.count("const primaryGoals=") != 1 or text.count("const questionSets=") != 1:
               raise RuntimeError('Unexpected JavaScript structure')
-
           path.write_text(text, encoding='utf-8')
           print('Deep old-program assessment implementation prepared successfully.')
 
@@ -183,3 +178,5 @@ jobs:
           git add index.html
           git commit -m 'Deepen old program goals and assessments'
           git push
+
+# Safe trigger refresh for the old-program implementation.
