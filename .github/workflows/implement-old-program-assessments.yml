@@ -1,0 +1,185 @@
+name: Implement Old Program Assessments
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/implement-old-program-assessments.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  implement:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update old program goals and questions
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          path = Path('index.html')
+          text = path.read_text(encoding='utf-8')
+
+          primary_goals = {
+            'Weight Loss': ['Maximum Fat Loss with Lean-Mass Preservation','Body Recomposition','Fat Loss + Strength Retention','Fat Loss + Cardiovascular Fitness','Fat Loss for a Previously Sedentary Individual','Fat Loss + Improved Daily Activity Capacity','Sustainable Long-Term Weight Management','Post-Weight-Loss Maintenance & Fitness','Not Sure — Need Goal Assessment'],
+            'Thyroid Fitness': ['Strength & Physical Capacity','Body-Composition Management','Muscle Development','Cardiorespiratory Fitness','Energy & Exercise Tolerance','Mobility & Functional Fitness','Return to Consistent Training','General Fitness with Thyroid-Aware Programming','Not Sure — Need Assessment'],
+            'PCOS / PCOD': ['Body-Composition Improvement','Strength & Muscle Development','Cardiorespiratory Fitness','Metabolic Fitness','Healthy Weight Management','Movement & Physical Function','Exercise Consistency & Lifestyle Capacity','Combined Strength + Cardiovascular Fitness','Not Sure — Need Assessment'],
+            'Female Fitness': ['Strength & Muscle Development','Body-Composition Improvement','Lower-Body Strength & Development','Core & Movement Quality','General Fitness & Conditioning','Mobility & Physical Confidence','Pregnancy Fitness Support when appropriate','Postpartum Return to Training when appropriate','Performance & Athletic Fitness','Not Sure — Need Assessment'],
+            'Diabetes Fitness': ['Improve Overall Exercise Capacity','Support Glucose-Management Through Physical Activity','Preserve/Build Lean Muscle','Body-Composition Improvement','Cardiorespiratory Fitness','Strength & Functional Capacity','Reduce Sedentary Behaviour & Increase Daily Activity','Combined Aerobic + Resistance Fitness','Healthy Aging & Functional Fitness','Not Sure — Need Assessment'],
+            'Posture & Movement Correction': ['Improve Postural Control','Improve Movement Quality','Improve Mobility','Improve Motor Control','Improve Movement Restrictions','Improve Desk/Work-Related Movement Capacity','Improve Functional Movement','Build a Stronger Movement Foundation','Return to Comfortable General Training'],
+            'Shoulder Health & Mobility': ['Improve Shoulder Mobility','Improve Shoulder Stability & Control','Restore Functional Shoulder Capacity','Build Shoulder Strength','Improve Overhead Function','Improve Scapular Control','Return to General Training','Return to Sport/Activity when appropriate'],
+            'Knee Health & Rehabilitation': ['Rebuild Knee Strength & Capacity','Improve Functional Movement','Improve Load Tolerance','Improve Squatting Capacity','Improve Walking/Stair Capacity','Return to Running when appropriate','Return to Sport when appropriate','Improve Lower-Body Movement Quality','Build Long-Term Knee Capacity'],
+            'Special Populations': ['Functional Independence','Improve Strength & Physical Capacity','Improve Balance & Mobility','Improve Daily-Life Function','Increase Safe Physical Activity','Improve Cardiovascular Capacity','Improve Confidence in Movement','Return to Appropriate Activity','Healthy Aging / Functional Longevity'],
+            'Functional Training': ['Whole-Body Functional Strength','Improve Daily-Life Movement','Improve Lifting & Carrying Capacity','Improve Squat/Hinge/Push/Pull Function','Improve Balance & Coordination','Improve Mobility','Improve Core Control','Improve Work Capacity','Improve Recreational/Sport Movement','General Physical Preparedness'],
+            'Strength & Conditioning': ['Maximum Strength','Explosive Power','Strength-Speed','Muscular Endurance','Aerobic Conditioning','Anaerobic Conditioning','Work Capacity','Strength + Conditioning Integration','General Athletic Development'],
+            'Sport-Specific Performance': ['Acceleration','Maximum Speed','Agility / Change of Direction','Explosive Power','Sport-Specific Strength','Repeated-Sprint Ability','Aerobic Endurance','Anaerobic Conditioning','Movement Efficiency','Overall Sport Performance']
+          }
+
+          question_sets = {
+            'Weight Loss': [
+              ['activity','Current daily activity level',['Mostly sedentary','Lightly active','Moderately active','Very active']],
+              ['history','Previous weight-loss experience',['None','Short-term attempts','Multiple structured attempts','Long-term maintenance experience']],
+              ['adherence','Biggest adherence barrier',['Time','Nutrition consistency','Training consistency','Hunger/appetite','Motivation','Stress/fatigue']],
+              ['training','Current resistance-training experience',['None','Beginner','Intermediate','Advanced']],
+              ['timeline','Preferred planning horizon',['No fixed timeline','3 months','3–6 months','6+ months']]
+            ],
+            'Thyroid Fitness': [
+              ['status','Current thyroid status',['Diagnosed hypothyroidism','Other diagnosed thyroid condition','Under evaluation','Prefer not to say']],
+              ['monitoring','Current medical monitoring/treatment status',['Stable and regularly monitored','Treatment recently changed','Occasional monitoring','Not currently monitored']],
+              ['energy','Typical energy/exercise-tolerance pattern',['Good and stable','Variable','Frequently low','Very limited']],
+              ['symptoms','Main training-relevant limitation',['None','Fatigue','Exercise intolerance','Mobility/stiffness','Other']],
+              ['history','Current training background',['Not training','Beginner','Intermediate','Advanced']]
+            ],
+            'PCOS / PCOD': [
+              ['status','Diagnosis/status',['Diagnosed PCOS','Diagnosed PCOD/related condition','Under evaluation','Prefer not to say']],
+              ['activity','Current activity level',['Mostly sedentary','Lightly active','Moderately active','Very active']],
+              ['resistance','Resistance-training experience',['None','Beginner','Intermediate','Advanced']],
+              ['recovery','Recovery pattern',['Good sleep/recovery','Inconsistent sleep','High stress','Both sleep and stress need improvement']],
+              ['barrier','Biggest consistency barrier',['Time','Energy','Stress','Motivation','Training knowledge','Routine changes']]
+            ],
+            'Female Fitness': [
+              ['lifeStage','Current life stage relevant to training',['General adult fitness','Pregnancy','Postpartum','Perimenopause/menopause','Prefer not to say']],
+              ['focus','Main body/training focus',['Full body','Lower body','Upper body','Core/movement','Conditioning']],
+              ['experience','Training experience',['Beginner','Intermediate','Advanced']],
+              ['movement','Current movement limitation',['None','Mobility','Strength','Balance/coordination','Pain — needs professional assessment']],
+              ['equipment','Training environment',['Full gym','Home + dumbbells','Home + bands','Mixed']]
+            ],
+            'Diabetes Fitness': [
+              ['type','Diabetes status/type',['Type 1','Type 2','Other/unsure','Prefer not to say']],
+              ['activity','Current physical-activity level',['Mostly sedentary','Lightly active','Moderately active','Very active']],
+              ['sedentary','Typical uninterrupted sitting time',['Under 30 minutes','30–60 minutes','1–2 hours','2+ hours']],
+              ['training','Current resistance-training experience',['None','Beginner','Intermediate','Advanced']],
+              ['complications','Known exercise-relevant complication/restriction',['None known','Yes — clinician has provided guidance','Unsure','Prefer not to say']]
+            ],
+            'Posture & Movement Correction': [
+              ['concern','Main posture/movement concern',['Forward head/neck position','Rounded shoulders','Upper-back position','Pelvic/lower-back control','General posture']],
+              ['exposure','Typical sitting/desk exposure',['Under 3 hours/day','3–6 hours/day','6–9 hours/day','9+ hours/day']],
+              ['movement','Most limited movement area',['Neck/upper body','Thoracic/upper back','Shoulder','Hip/lower body','General mobility']],
+              ['control','Movement-control challenge',['Awareness','Stability','Coordination','Mobility','Strength']],
+              ['pain','Pain currently present?',['No pain','Yes — needs professional assessment','Unsure']]
+            ],
+            'Shoulder Health & Mobility': [
+              ['side','Affected side',['Right','Left','Both','No current symptoms']],
+              ['symptom','Main limitation',['Pain','Stiffness','Reduced range of motion','Stability/control','No pain but reduced function']],
+              ['movement','Most difficult movement',['Overhead reach','Behind-back reach','Push','Pull','Rotational movement']],
+              ['history','Relevant history',['None','Previous injury','Previous surgery','Previous physiotherapy','Diagnosed condition']],
+              ['demand','Main activity demand',['Daily-life function','Gym training','Work-related','Sport/recreation']]
+            ],
+            'Knee Health & Rehabilitation': [
+              ['side','Affected knee',['Right','Left','Both','No current symptoms']],
+              ['symptom','Main limitation',['Pain','Swelling','Stiffness','Instability','Reduced capacity']],
+              ['function','Most limited activity',['Walking','Stairs','Squatting','Running','Sit-to-stand']],
+              ['history','Relevant history',['None','Previous injury','Surgery','Physiotherapy','Diagnosed condition']],
+              ['load','Current lower-body load tolerance',['Very low','Low','Moderate','Good']]
+            ],
+            'Special Populations': [
+              ['category','Primary population/need',['Older adult','Limited mobility','Disability/functional limitation','Chronic-condition fitness support','Return to activity']],
+              ['independence','Current functional independence',['Independent','Needs some assistance','Uses an assistive device','Varies day to day']],
+              ['mobility','Mobility level',['Good','Some limitations','Significant limitations']],
+              ['balance','Balance capacity',['Good','Some concern','Significant concern','Uses support']],
+              ['restriction','Known exercise restriction',['None known','Clinician-advised limits','Unsure','Prefer not to say']]
+            ],
+            'Functional Training': [
+              ['task','Most important daily-life task',['Lifting/carrying','Stairs','Squatting','Getting up/down','Walking']],
+              ['pattern','Movement pattern needing improvement',['Squat','Hinge','Push','Pull','Carry','Rotate']],
+              ['capacity','Current physical capacity',['Beginner','Developing','Intermediate','Advanced']],
+              ['balance','Balance/coordination need',['None','Mild','Moderate','Major']],
+              ['demand','Main physical demand',['Daily life','Work','Recreation','Sport']]
+            ],
+            'Strength & Conditioning': [
+              ['quality','Primary performance quality',['Maximum strength','Power','Strength-speed','Muscular endurance','Conditioning']],
+              ['trainingAge','Training age',['Beginner','1–2 years','2–4 years','4+ years']],
+              ['volume','Current weekly training exposure',['1–2 sessions','3 sessions','4 sessions','5+ sessions']],
+              ['conditioning','Current conditioning level',['Low','Developing','Good','High']],
+              ['recovery','Recovery capacity',['Good','Variable','Needs improvement']]
+            ],
+            'Sport-Specific Performance': [
+              ['sport','Primary sport/event',['Football','Cricket','Basketball','Volleyball','Tennis','Badminton','Athletics/Running','Boxing/Combat','Swimming','Cycling','Other']],
+              ['position','Position/event role',['Not position-specific','Attacker/forward','Defender','Midfield/all-round','Goalkeeper','Individual event','Other']],
+              ['level','Competitive level',['Recreational','Amateur','Competitive','High-performance/elite pathway']],
+              ['limiter','Biggest performance limiter',['Speed','Acceleration','Agility','Power','Strength','Conditioning','Movement efficiency']],
+              ['phase','Current competition phase',['Off-season','Pre-season','In-season','Post-season/transition']]
+            ]
+          }
+
+          def js_array(value):
+              # JSON is valid JavaScript for these string arrays.
+              import json
+              return json.dumps(value, ensure_ascii=False, separators=(',',':'))
+
+          def replace_entry(source, key, value_text):
+              pattern = re.compile(r"(^\s*'" + re.escape(key) + r"':)\[.*?\](?=,\s*\n|\n\s*\})", re.M | re.S)
+              replacement = r"\1" + value_text
+              new_source, count = pattern.subn(replacement, source, count=1)
+              if count != 1:
+                  raise RuntimeError(f'Could not safely replace {key}')
+              return new_source
+
+          # Update only the old programs. Muscle Building and the nine new programs remain untouched.
+          for key, values in primary_goals.items():
+              text = replace_entry(text, key, js_array(values))
+
+          for key, values in question_sets.items():
+              text = replace_entry(text, key, js_array(values))
+
+          # Sanity checks before committing.
+          required = ['Muscle Building','Weight Loss','Thyroid Fitness','PCOS / PCOD','Female Fitness','Diabetes Fitness','Posture & Movement Correction','Shoulder Health & Mobility','Knee Health & Rehabilitation','Special Populations','Functional Training','Strength & Conditioning','Sport-Specific Performance','Core','Balance & Stability','Running & Endurance Performance','Calisthenics & Bodyweight Strength','No-Gym Muscle & Strength Development','Home Fitness & Resistance Band Training','Mental Wellness & Stress Resilience','Wearable Data & VO₂ / Cardiovascular Fitness','Cardiovascular Fitness & Conditioning']
+          for name in required:
+              if name not in text:
+                  raise RuntimeError(f'Missing program after update: {name}')
+          if text.count("const primaryGoals=") != 1 or text.count("const questionSets=") != 1:
+              raise RuntimeError('Unexpected JavaScript structure')
+
+          path.write_text(text, encoding='utf-8')
+          print('Deep old-program assessment implementation prepared successfully.')
+
+      - name: Validate JavaScript syntax
+        shell: bash
+        run: |
+          node --check <(python - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('index.html').read_text(encoding='utf-8')
+          js=re.search(r'<script>(.*?)</script>',s,re.S).group(1)
+          print(js)
+          PY
+          )
+
+      - name: Commit implementation
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if git diff --quiet -- index.html; then
+            echo 'No index.html changes were necessary.'
+            exit 0
+          fi
+          git add index.html
+          git commit -m 'Deepen old program goals and assessments'
+          git push
