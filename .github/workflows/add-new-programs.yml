@@ -1,0 +1,105 @@
+name: Add 8 New Fitness Programs
+
+on:
+  push:
+    paths:
+      - '.github/workflows/add-new-programs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-site:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Add programs and assessments
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('index.html')
+          s = path.read_text(encoding='utf-8')
+
+          programs = '''const programs = [
+            ["Muscle Building", "Strength, hypertrophy fundamentals and sustainable progression.", "₹5,500", "Foundation"],
+            ["Weight Loss", "Practical training, movement and habit-building for your fat-loss goal.", "₹8,500", "Foundation"],
+            ["Thyroid Fitness", "Fitness guidance with thoughtful training and lifestyle considerations.", "₹9,500", "Special focus"],
+            ["PCOS / PCOD", "Women-focused fitness foundations, strength and movement guidance.", "₹8,500", "Special focus"],
+            ["Female Fitness", "A deeper women-focused blueprint for strength, mobility and conditioning.", "₹9,500", "Signature"],
+            ["Diabetes Fitness", "Exercise-planning principles, movement and lifestyle considerations.", "₹8,500", "Special focus"],
+            ["Posture & Movement Correction", "Movement awareness, mobility and foundational corrective concepts.", "₹7,500", "Movement"],
+            ["Shoulder Health & Mobility", "Shoulder mobility, stability and exercise-selection fundamentals.", "₹8,500", "Movement"],
+            ["Knee Health & Rehabilitation", "Knee mechanics, strengthening and safe movement concepts.", "₹9,500", "Movement"],
+            ["Special Populations", "Foundational programming considerations for varied fitness needs.", "₹9,500", "Education"],
+            ["Functional Training", "Movement patterns, core stability, balance and conditioning.", "₹9,500", "Performance"],
+            ["Strength & Conditioning", "Strength, power, conditioning and performance fundamentals.", "₹10,500", "Performance"],
+            ["Sport-Specific Performance", "Sport-focused training designed around strength, speed, power, agility, conditioning, mobility and athletic performance.", "₹5,600", "Sport"],
+            ["Core Strength & Control", "Build trunk strength, bracing, anti-rotation control and efficient movement from the inside out.", "₹6,000", "Movement"],
+            ["Balance, Stability & Coordination", "Progressive balance, joint stability and coordination training for confident, controlled movement.", "₹7,500", "Movement"],
+            ["Running & Endurance Performance", "Running economy, aerobic development, interval conditioning and endurance progression.", "₹9,900", "Endurance"],
+            ["Calisthenics & Bodyweight Strength", "Master progressive bodyweight strength, control, skills and scalable calisthenics training.", "₹8,500", "Strength"],
+            ["No-Gym Muscle & Strength Development", "Build muscle and strength without a traditional gym using smart progressive overload.", "₹6,800", "Home training"],
+            ["Home Fitness & Resistance Band Training", "A structured home system using resistance bands, bodyweight and progressive training methods.", "₹6,800", "Home training"],
+            ["Mental Wellness & Stress Resilience", "Fitness-supported strategies for stress regulation, recovery, sleep habits and resilient routines.", "₹9,500", "Wellness"],
+            ["Wearable Data, VO₂ & Cardiovascular Fitness", "Learn to use wearable metrics, VO₂ estimates, heart-rate data and cardiovascular training principles.", "₹9,500", "Data & cardio"],
+            ["Cardiovascular Fitness & Conditioning", "Build aerobic capacity, cardiovascular fitness, conditioning and sustainable work capacity.", "₹9,500", "Cardio"]
+          ];'''
+
+          s, n = re.subn(r'const programs = \[.*?\n\];', programs, s, count=1, flags=re.S)
+          if n != 1:
+              raise SystemExit('Could not locate programs array')
+
+          s = s.replace('<span>13 focused programs</span>', '<span>21 focused programs</span>')
+          s = s.replace('<div class="hero-number">13</div>', '<div class="hero-number">21</div>')
+
+          new_goals = '''  ,\n  'Core Strength & Control':['Core strength & trunk control','Visible core development','Bracing & spinal control','Athletic core performance','Back-supportive core training'],
+  'Balance, Stability & Coordination':['Balance improvement','Joint stability & control','Coordination & motor control','Fall-risk reduction / confidence','Athletic balance & stability'],
+  'Running & Endurance Performance':['5K / short-distance performance','10K / longer-distance performance','Aerobic endurance','Running speed & pace development','Race preparation','General endurance'],
+  'Calisthenics & Bodyweight Strength':['Bodyweight strength foundation','Pull-up / pushing strength','Skill development','Advanced calisthenics progression','Relative strength'],
+  'No-Gym Muscle & Strength Development':['Muscle gain without a gym','Strength without gym equipment','Bodyweight + household resistance','Home-based recomposition','Progressive overload at home'],
+  'Home Fitness & Resistance Band Training':['Full-body home fitness','Resistance-band muscle building','Home strength development','Limited-space conditioning','Low-equipment consistency'],
+  'Mental Wellness & Stress Resilience':['Stress management through exercise','Recovery & nervous-system regulation','Sleep-supportive fitness habits','Emotional resilience','Mind-body fitness routine'],
+  'Wearable Data, VO₂ & Cardiovascular Fitness':['Improve VO₂ / aerobic capacity','Understand wearable heart-rate data','Heart-rate-zone training','Cardiovascular performance','Endurance monitoring & progression'],
+  'Cardiovascular Fitness & Conditioning':['Aerobic capacity','Cardiovascular endurance','Conditioning / work capacity','Heart-rate-zone fitness','General cardio health']'''
+          marker = "  'Sport-Specific Performance':['Speed / acceleration'"
+          pos = s.find(marker)
+          if pos == -1:
+              raise SystemExit('Could not locate primaryGoals section')
+          end = s.find("\n};", pos)
+          if end == -1:
+              raise SystemExit('Could not locate end of primaryGoals')
+          s = s[:end] + new_goals + s[end:]
+
+          new_questions = '''  ,\n  'Core Strength & Control':[['focus','Primary core focus',['Trunk strength','Bracing/control','Visible core development','Athletic core']],['training','Current training base',['Beginner','Intermediate','Advanced']],['movement','Movement priority',['Squat/deadlift support','Running/sport support','Daily movement','General core control']],['equipment','Equipment access',['Gym','Dumbbells/kettlebells','Bands','Bodyweight only']]],
+  'Balance, Stability & Coordination':[['balanceGoal','Primary stability goal',['General balance','Single-leg stability','Joint stability','Coordination']],['activity','Current activity level',['Low','Moderate','High']],['limitation','Main challenge',['Ankle/foot','Knee/hip','Trunk control','General coordination']],['sport','Sport or activity demand',['None','Running','Field/court sport','Recreation']]],
+  'Running & Endurance Performance':[['distance','Primary running distance',['General running','5K','10K','Half marathon','Other']],['experience','Running experience',['Beginner','Recreational','Intermediate','Advanced']],['frequency','Current running frequency',['0 days','1–2 days','3–4 days','5+ days']],['goal','Primary performance focus',['Endurance','Pace/speed','Race preparation','Running consistency']]],
+  'Calisthenics & Bodyweight Strength':[['level','Current calisthenics level',['Beginner','Intermediate','Advanced']],['skill','Priority skill',['Push-up','Pull-up','Dip','Handstand','Muscle-up','General bodyweight strength']],['equipment','Available equipment',['None','Pull-up bar','Parallel bars','Home setup']],['frequency','Training frequency',['1–2 days','3 days','4 days','5+ days']]],
+  'No-Gym Muscle & Strength Development':[['equipment','Available resistance',['Bodyweight only','Household objects','Bands','Dumbbells/home weights']],['goal','Primary outcome',['Muscle gain','Strength','Body recomposition','General fitness']],['level','Training level',['Beginner','Intermediate','Advanced']],['space','Training space',['Small room','Home room','Outdoor space','Mixed']]],
+  'Home Fitness & Resistance Band Training':[['equipment','Band setup',['Light bands','Multiple resistance bands','Tube bands','Full band set']],['goal','Primary goal',['Muscle gain','Strength','Fat loss','General fitness']],['space','Home space',['Small','Moderate','Large']],['time','Typical session time',['20–30 min','30–45 min','45–60 min','60+ min']]],
+  'Mental Wellness & Stress Resilience':[['stress','Current stress level',['Low','Moderate','High','Very high']],['sleep','Sleep consistency',['Good','Variable','Poor']],['goal','Primary wellness goal',['Stress regulation','Better recovery','Sleep-supportive routine','Emotional resilience']],['activity','Current movement level',['Low','Moderate','High']]],
+  'Wearable Data, VO₂ & Cardiovascular Fitness':[['wearable','Wearable/device access',['Apple Watch','Garmin','Fitbit','Other wearable','No wearable']],['metric','Primary metric interest',['VO₂ estimate','Heart rate','HRV','Training load','All available metrics']],['goal','Primary cardiovascular goal',['Improve VO₂','Build endurance','Improve heart-rate control','Monitor progression']],['experience','Cardio training level',['Beginner','Intermediate','Advanced']]],
+  'Cardiovascular Fitness & Conditioning':[['goal','Primary cardio goal',['Aerobic fitness','Endurance','Conditioning','Work capacity']],['method','Preferred modality',['Running','Cycling','Walking/incline','Rowing','Mixed']],['level','Current fitness level',['Beginner','Intermediate','Advanced']],['frequency','Current cardio frequency',['0–1 days','2–3 days','4–5 days','6+ days']]]'''
+          pos = s.find("const questionSets={")
+          if pos == -1:
+              raise SystemExit('Could not locate questionSets section')
+          end = s.find("\n};", pos)
+          if end == -1:
+              raise SystemExit('Could not locate end of questionSets')
+          s = s[:end] + new_questions + s[end:]
+
+          path.write_text(s, encoding='utf-8')
+          print('Updated index.html with 21 programs and unique assessments.')
+          PY
+
+      - name: Commit updated site
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet || git commit -m 'Add 8 new programs with unique assessments'
+          git push
