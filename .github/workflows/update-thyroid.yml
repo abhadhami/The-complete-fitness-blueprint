@@ -24,13 +24,13 @@ jobs:
           import re
           path = Path('index.html')
           text = path.read_text(encoding='utf-8')
-          goal_block = "'Thyroid Fitness':['Fat Loss / Weight Management','Healthy Weight Gain','Weight Maintenance','Muscle Gain & Strength','Body Recomposition','General Fitness & Conditioning']"
+          goal_block = "'Thyroid Fitness':['Hypothyroidism — weight management / body composition','Hypothyroidism — strength & muscle development','Hyperthyroidism — medically-cleared conditioning','Hyperthyroidism — medically-cleared strength & function','General thyroid-aware fitness']"
           question_block = """'Thyroid Fitness':[['thyroidType','Thyroid type',['Hypothyroidism','Hyperthyroidism','Other / Not sure']],['weightTrend','Current weight trend',['Weight gain','Weight loss','Weight stable','Difficulty gaining weight','Difficulty losing weight']],['energy','Energy / exercise tolerance',['Good','Moderate','Low']],['mainGoal','Primary fitness goal',['Fat loss / weight management','Healthy weight gain','Weight maintenance','Muscle gain & strength','Body recomposition','General fitness & conditioning']]]"""
           text, n1 = re.subn(r"'Thyroid Fitness':\[[^\n]*\](?=,\n'PCOS / PCOD')", goal_block, text, count=1)
           text, n2 = re.subn(r"'Thyroid Fitness':\[\[.*?\]\](?=,\n'PCOS / PCOD')", question_block, text, count=1, flags=re.S)
           if n1 != 1 or n2 != 1:
               raise SystemExit(f'Expected one Thyroid replacement; goals={n1}, questions={n2}')
-          for required in ['Hypothyroidism','Hyperthyroidism','Healthy Weight Gain',"'Muscle Building':"]:
+          for required in ['Hypothyroidism','Hyperthyroidism',"'Muscle Building':"]:
               if required not in text:
                   raise SystemExit(f'Missing required content: {required}')
           path.write_text(text, encoding='utf-8')
@@ -41,4 +41,4 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
-          if git diff --cached --quiet; then echo "No changes"; else git commit -m "Simplify Thyroid Fitness assessment" && git push; fi
+          if git diff --cached --quiet; then echo "No changes"; else git commit -m "Restore Thyroid primary goals" && git push; fi
