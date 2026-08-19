@@ -40,11 +40,11 @@ jobs:
           if n1 != 1 or n2 != 1:
               raise SystemExit(f'Expected exactly one Thyroid block replacement; goals={n1}, questions={n2}')
 
-          if text.count("['Thyroid Fitness'") < 1:
+          if "'Thyroid Fitness':" not in text:
               raise SystemExit('Thyroid Fitness block missing after update')
-          if text.count("['Muscle Building'") < 1:
-              raise SystemExit('Muscle Building program missing')
-          if text.count("['Cardiovascular Fitness & Conditioning'") < 1:
+          if "'Muscle Building':" not in text:
+              raise SystemExit('Muscle Building assessment missing')
+          if "['Cardiovascular Fitness & Conditioning'" not in text:
               raise SystemExit('Final program missing')
 
           path.write_text(text, encoding='utf-8')
