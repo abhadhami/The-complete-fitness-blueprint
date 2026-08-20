@@ -1,0 +1,43 @@
+name: Update Blueprint Preview
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/update-preview.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update Blueprint Preview
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('index.html')
+          text = path.read_text(encoding='utf-8')
+
+          new_section = '''<section class="dark-section" id="preview"><div class="wrap preview"><span class="eyebrow">Blueprint preview</span><h2>Designed to be clear from page one.</h2><p class="hero-copy">A simple learning flow that turns your goal into a practical training direction.</p><div class="preview-grid"><div>START HERE<small>Your goal, current level &amp; training focus</small></div><div>ASSESS<small>Your profile, limitations &amp; exercise needs</small></div><div>BUILD<small>Training structure, exercise selection &amp; progression</small></div><div>APPLY<small>Weekly routine, recovery &amp; real-world implementation</small></div></div><p class="muted-note" style="margin-top:24px;text-align:center">From assessment to action — everything is organized around your goal.</p></div></section>'''
+
+          pattern = r'<section class="dark-section" id="preview">.*?</section>'
+          updated, count = re.subn(pattern, new_section, text, count=1, flags=re.S)
+          if count != 1:
+              raise SystemExit('Blueprint Preview section not found; no changes made.')
+          path.write_text(updated, encoding='utf-8')
+          PY
+
+      - name: Commit update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet || git commit -m "Improve blueprint preview section"
+          git push
